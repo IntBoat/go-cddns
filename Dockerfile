@@ -1,20 +1,21 @@
-FROM alpine:latest
-LABEL version="0.1.0"
-LABEL description="Docker image for running go-cddns application"
-LABEL maintainer="Nick Robison nick@nickrobison.com"
+FROM golang:alpine as builder
+MAINTAINER Zedo.dev<info@zedo.dev>
+WORKDIR /src
+ENV TZ="Asia/Hong_Kong"
 
-# Link MUSL in place of GLIBC
-# https://stackoverflow.com/questions/34729748/installed-go-binary-not-found-in-path-on-alpine-linux-docker
-RUN mkdir /lib64 && ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2
+COPY ./go.mod ./go.sum ./
+RUN go mod download
+COPY . .
+RUN apk add --no-cache ca-certificates upx git tzdata && update-ca-certificates 2>/dev/null || true
+RUN sh ./build.sh
 
-# Setup the necessary SSL certs
-RUN apk update \
-        && apk upgrade \
-        && apk add --no-cache \
-        ca-certificates \
-        && update-ca-certificates 2>/dev/null || true
+FROM scratch as runner
+MAINTAINER Zedo.dev<info@zedo.dev>
+ENV TZ="Asia/Hong_Kong"
+COPY --from=builder /usr/share/zoneinfo/Asia/Hong_Kong /etc/localtime
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /src/server /app/go-cddns
+CMD ["/app/server"]
 
-# Add the go binary and config files
-COPY bin/go-cddns*_amd64 /app/go-cddns
 WORKDIR /app
 CMD ["./go-cddns", "--config=/etc/config.json"]

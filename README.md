@@ -40,7 +40,7 @@ Create a config.json with the following structure:
   "Key": "{Cloudflare API Key}",
   "Email": "{Cloudflare Email Address}",
   "DomainName": "{Cloudflare domain to modify}",
-  "RecordName": "{Array of DNS records to update}",
+  "RecordNames": "{Array of DNS records to update}",
   "Remove": "{Boolean of whether or not to remove the records on shutdown}"
   }
   ```

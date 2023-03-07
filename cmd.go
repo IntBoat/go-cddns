@@ -1,18 +1,15 @@
 package main
 
-import "flag"
+import (
+	"flag"
+	"github.com/spf13/viper"
+)
 
-type cmdOptions struct {
-	Filename string
-}
-
-func parseCommandLineFlags() *cmdOptions {
+func parseCommandLineFlags() {
 	var filename string
 	flag.StringVar(&filename, "config", "./config.json", "Path to config file")
 
 	flag.Parse()
 
-	return &cmdOptions{
-		Filename: filename,
-	}
+	viper.SetConfigFile(filename)
 }
